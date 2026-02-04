@@ -1,0 +1,630 @@
+{
+  "version": "1.0.0",
+  "name": "voken",
+  "instructions": [
+    {
+      "name": "initializeTreasury",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "treasuryConfigAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "proposalCounterAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "xMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "solPrice",
+          "type": "u64"
+        },
+        {
+          "name": "tokensPerPurchase",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "buyToken",
+      "accounts": [
+        {
+          "name": "buyer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "buyerTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryConfigAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "xMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "registerVoter",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "voterAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "registerProposal",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "proposalAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "proposalTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "proposalCounterAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "proposalInfo",
+          "type": "string"
+        },
+        {
+          "name": "deadline",
+          "type": "i64"
+        },
+        {
+          "name": "tokenAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "proposalToVoter",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "proposalAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "voterAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "voterTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "proposalId",
+          "type": "u8"
+        },
+        {
+          "name": "tokenAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "pickWinner",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "proposalAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "winnerAccount",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "proposalId",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "closeProposal",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "proposalAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "destination",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "proposalId",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "closeVoter",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "voterAccount",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "withdrawSol",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "treasuryConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "solVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "TreasuryConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "solPrice",
+            "type": "u64"
+          },
+          {
+            "name": "xMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokensPerPurchase",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Voter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "voterId",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Proposal",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proposalId",
+            "type": "u8"
+          },
+          {
+            "name": "proposalInfo",
+            "type": "string"
+          },
+          {
+            "name": "deadline",
+            "type": "i64"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "numberOfVotes",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProposalCounter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "proposalCount",
+            "type": "u32"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Winner",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "winningProposalId",
+            "type": "u8"
+          },
+          {
+            "name": "winningVotes",
+            "type": "u32"
+          },
+          {
+            "name": "proposalInfo",
+            "type": "string"
+          },
+          {
+            "name": "declaredAt",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "TreasuryInitialized",
+      "fields": [
+        {
+          "name": "authority",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "solPrice",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "tokensPerPurchase",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "TokensPurchased",
+      "fields": [
+        {
+          "name": "buyer",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "amount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "VoterRegistered",
+      "fields": [
+        {
+          "name": "voter",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "ProposalCreated",
+      "fields": [
+        {
+          "name": "proposalId",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "creator",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "proposalInfo",
+          "type": "string",
+          "index": false
+        },
+        {
+          "name": "deadline",
+          "type": "i64",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "VoteCast",
+      "fields": [
+        {
+          "name": "voter",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "proposalId",
+          "type": "u8",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "WinnerDeclared",
+      "fields": [
+        {
+          "name": "proposalId",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "proposalInfo",
+          "type": "string",
+          "index": false
+        },
+        {
+          "name": "votes",
+          "type": "u32",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "ProposalClosed",
+      "fields": [
+        {
+          "name": "proposalId",
+          "type": "u8",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "VoterAccountClosed",
+      "fields": [
+        {
+          "name": "voter",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "rentRecoveredTo",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "SolWithdrawn",
+      "fields": [
+        {
+          "name": "authority",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "amount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 300,
+      "name": "ProposalCounterAlreadyInitaialized",
+      "msg": "Proposal counter already initialized"
+    },
+    {
+      "code": 301,
+      "name": "InvalidDeadline",
+      "msg": "Invalid deadline"
+    },
+    {
+      "code": 302,
+      "name": "ProposalEnded",
+      "msg": "Proposal has ended"
+    },
+    {
+      "code": 303,
+      "name": "ProposalVotesOverflow",
+      "msg": "Proposal votes overflow"
+    },
+    {
+      "code": 304,
+      "name": "VotingStillActive",
+      "msg": "Voting is still active"
+    },
+    {
+      "code": 305,
+      "name": "NoVotes",
+      "msg": "No votes on proposal"
+    },
+    {
+      "code": 306,
+      "name": "ProposalCounterOverflow",
+      "msg": "Proposal counter overflow"
+    }
+  ]
+}
