@@ -21,7 +21,7 @@ import {
   Admin,
   Profile,
 } from "./pages";
-import "./App.css";
+import "./index.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,22 +61,26 @@ function App() {
             <Toaster
               position="bottom-right"
               toastOptions={{
+                duration: 4000,
                 style: {
-                  background: "rgba(30, 41, 59, 0.9)",
+                  background: "rgba(18, 18, 26, 0.95)",
                   color: "#fff",
-                  backdropFilter: "blur(10px)",
+                  backdropFilter: "blur(20px)",
                   border: "1px solid rgba(255, 255, 255, 0.1)",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  fontSize: "14px",
                 },
                 success: {
                   iconTheme: {
                     primary: "#14F195",
-                    secondary: "#fff",
+                    secondary: "#0a0a0f",
                   },
                 },
                 error: {
                   iconTheme: {
-                    primary: "#EF4444",
-                    secondary: "#fff",
+                    primary: "#ff4757",
+                    secondary: "#0a0a0f",
                   },
                 },
               }}

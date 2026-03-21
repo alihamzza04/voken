@@ -1,212 +1,187 @@
 import { useWallet } from "@solana/wallet-adapter-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Clock, Users, Calendar, ChevronRight } from "lucide-react";
-import { useProposals, useVote } from "../hooks/useProgram";
-import { useIsVoterRegistered } from "../hooks/useProgram";
-import { getTimeRemaining, formatDate } from "../lib/utils";
+import {
+  ArrowLeft,
+  Users,
+  Plus,
+  Calendar,
+  Filter,
+  Search,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
+import { useProposals, useVote, useIsVoterRegistered } from "../hooks/useProgram";
+import {
+  ProposalCard,
+  EmptyState,
+  LoadingSkeleton,
+  CountdownTimer,
+  AnimatedButton,
+} from "../components/ui";
+import { useState } from "react";
+import { formatDate } from "../lib/utils";
 import toast from "react-hot-toast";
 
 export function Proposals() {
   const { connected } = useWallet();
   const { data: proposals, isLoading } = useProposals();
   const { data: isVoterRegistered } = useIsVoterRegistered();
+  const [filter, setFilter] = useState<"all" | "active" | "ended">("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const activeProposals = proposals?.filter((p) => p.status === "active") || [];
-  const endedProposals = proposals?.filter((p) => p.status === "ended") || [];
+  const filteredProposals = proposals?.filter((p) => {
+    const matchesFilter =
+      filter === "all" ||
+      (filter === "active" && p.status === "active") ||
+      (filter === "ended" && p.status === "ended");
+    const matchesSearch =
+      !searchQuery ||
+      p.proposalInfo.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  const activeCount = proposals?.filter((p) => p.status === "active").length || 0;
+  const endedCount = proposals?.filter((p) => p.status === "ended").length || 0;
 
   if (!connected) {
     return (
-      <div className="text-center py-20">
-        <h1 className="text-2xl font-bold mb-4">Connect Your Wallet</h1>
-        <p className="text-gray-400">
-          Connect your wallet to view and vote on proposals
-        </p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <EmptyState
+          icon={AlertCircle}
+          title="Connect Your Wallet"
+          description="Please connect your wallet to view and vote on proposals"
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6"
       >
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl font-bold gradient-text mb-2">
             Proposals
           </h1>
-          <p className="text-gray-400 mt-2">
-            Browse and vote on community proposals
+          <p className="text-white/60">
+            Browse and vote on community governance proposals
           </p>
         </div>
-        <Link
-          to="/create"
-          className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-green-600 text-white font-semibold hover:opacity-90 transition-opacity"
-        >
-          Create Proposal
+        <Link to="/create">
+          <AnimatedButton icon={<Plus className="w-5 h-5" />}>Create Proposal</AnimatedButton>
         </Link>
       </motion.div>
 
+      {/* Registration Alert */}
       {!isVoterRegistered && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-6 rounded-2xl border-yellow-500/30 bg-yellow-500/5"
+          className="glass-card p-6 border-yellow-500/20 bg-yellow-500/5"
         >
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
-              <Users className="w-5 h-5 text-yellow-400" />
+            <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+              <Users className="w-6 h-6 text-yellow-400" />
             </div>
-            <div>
-              <h3 className="font-semibold text-yellow-400">
+            <div className="flex-1">
+              <h3 className="font-semibold text-yellow-400 mb-1">
                 Registration Required
               </h3>
-              <p className="text-gray-400 mt-1">
-                You need to register as a voter before you can vote on
-                proposals.
+              <p className="text-white/60 text-sm mb-4">
+                You need to register as a voter before you can vote on proposals.
+                Registration is free and only takes a moment.
               </p>
-              <Link
-                to="/profile"
-                className="inline-block mt-3 text-sm text-yellow-400 hover:text-yellow-300"
-              >
-                Register now →
+              <Link to="/profile">
+                <AnimatedButton variant="secondary" size="sm">
+                  Register Now
+                </AnimatedButton>
               </Link>
             </div>
           </div>
         </motion.div>
       )}
 
-      <div className="space-y-8">
-        <section>
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500" />
-            Active Proposals ({activeProposals.length})
-          </h2>
-          {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-32 rounded-xl bg-white/5 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : activeProposals.length === 0 ? (
-            <div className="glass-card p-8 rounded-2xl text-center">
-              <p className="text-gray-400">No active proposals</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {activeProposals.map((proposal, index) => (
-                <motion.div
-                  key={proposal.proposalId}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Link
-                    to={`/proposals/${proposal.proposalId}`}
-                    className="glass-card p-6 rounded-2xl hover:bg-white/10 transition-colors block"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="text-sm text-gray-500">
-                            #{proposal.proposalId}
-                          </span>
-                          <span className="px-2 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">
-                            Active
-                          </span>
-                        </div>
-                        <h3 className="text-lg font-semibold mb-3">
-                          {proposal.proposalInfo}
-                        </h3>
-                        <div className="flex items-center gap-6 text-sm text-gray-400">
-                          <span className="flex items-center gap-1">
-                            <Users className="w-4 h-4" />
-                            {proposal.numberOfVotes} votes
-                          </span>
-                          <span className="flex items-center gap-1 text-green-400">
-                            <Clock className="w-4 h-4" />
-                            {getTimeRemaining(proposal.deadline)} left
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </section>
+      {/* Filters & Search */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="glass-card p-4"
+      >
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Filter Tabs */}
+          <div className="flex items-center gap-2">
+            {[
+              { key: "all", label: "All", count: proposals?.length || 0 },
+              { key: "active", label: "Active", count: activeCount },
+              { key: "ended", label: "Ended", count: endedCount },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setFilter(tab.key as typeof filter)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  filter === tab.key
+                    ? "bg-white/10 text-white"
+                    : "text-white/50 hover:text-white/70 hover:bg-white/5"
+                }`}
+              >
+                {tab.label}
+                <span className="ml-2 text-xs text-white/40">({tab.count})</span>
+              </button>
+            ))}
+          </div>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-gray-500" />
-            Ended Proposals ({endedProposals.length})
-          </h2>
-          {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="h-24 rounded-xl bg-white/5 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : endedProposals.length === 0 ? (
-            <div className="glass-card p-8 rounded-2xl text-center">
-              <p className="text-gray-400">No ended proposals</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {endedProposals.map((proposal, index) => (
-                <motion.div
-                  key={proposal.proposalId}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Link
-                    to={`/proposals/${proposal.proposalId}`}
-                    className="glass-card p-6 rounded-2xl hover:bg-white/10 transition-colors block opacity-60"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="text-sm text-gray-500">
-                            #{proposal.proposalId}
-                          </span>
-                          <span className="px-2 py-0.5 rounded-full text-xs bg-gray-500/20 text-gray-400">
-                            Ended
-                          </span>
-                        </div>
-                        <h3 className="text-lg font-semibold mb-3">
-                          {proposal.proposalInfo}
-                        </h3>
-                        <div className="flex items-center gap-6 text-sm text-gray-400">
-                          <span className="flex items-center gap-1">
-                            <Users className="w-4 h-4" />
-                            {proposal.numberOfVotes} votes
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            Ended {formatDate(proposal.deadline)}
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+          {/* Search */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <input
+              type="text"
+              placeholder="Search proposals..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input-field pl-10"
+            />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Proposals List */}
+      {isLoading ? (
+        <LoadingSkeleton type="list" count={5} />
+      ) : filteredProposals?.length === 0 ? (
+        <EmptyState
+          icon={Filter}
+          title="No Proposals Found"
+          description={
+            searchQuery
+              ? "No proposals match your search criteria"
+              : "There are no proposals in this category yet"
+          }
+          actionLabel={!searchQuery ? "Create Proposal" : undefined}
+          actionHref="/create"
+        />
+      ) : (
+        <AnimatePresence mode="popLayout">
+          <div className="space-y-4">
+            {filteredProposals?.map((proposal, index) => (
+              <ProposalCard
+                key={proposal.proposalId}
+                proposalId={proposal.proposalId}
+                proposalInfo={proposal.proposalInfo}
+                deadline={proposal.deadline}
+                numberOfVotes={proposal.numberOfVotes}
+                status={proposal.status}
+                index={index}
+              />
+            ))}
+          </div>
+        </AnimatePresence>
+      )}
     </div>
   );
 }
@@ -236,133 +211,154 @@ export function ProposalDetail() {
 
   if (!connected) {
     return (
-      <div className="text-center py-20">
-        <h1 className="text-2xl font-bold mb-4">Connect Your Wallet</h1>
-        <p className="text-gray-400">
-          Connect your wallet to view this proposal
-        </p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <EmptyState
+          icon={AlertCircle}
+          title="Connect Your Wallet"
+          description="Connect your wallet to view this proposal"
+        />
       </div>
     );
   }
 
   if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-12 rounded-xl bg-white/5 animate-pulse" />
-        <div className="h-64 rounded-xl bg-white/5 animate-pulse" />
-      </div>
-    );
+    return <LoadingSkeleton type="detail" />;
   }
 
   if (!proposal) {
     return (
-      <div className="text-center py-20">
-        <h1 className="text-2xl font-bold mb-4">Proposal Not Found</h1>
-        <p className="text-gray-400">This proposal does not exist</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <EmptyState
+          icon={AlertCircle}
+          title="Proposal Not Found"
+          description="This proposal does not exist or has been removed"
+          actionLabel="View All Proposals"
+          actionHref="/proposals"
+        />
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Back Button */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <Link
           to="/proposals"
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6"
+          className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Proposals
         </Link>
       </motion.div>
 
+      {/* Proposal Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="glass-card rounded-2xl p-8"
+        className="glass-card p-8 relative overflow-hidden"
       >
+        <div
+          className={`absolute top-0 left-0 w-full h-1 ${
+            isExpired
+              ? "bg-gradient-to-r from-gray-500 to-gray-400"
+              : "bg-gradient-to-r from-purple-500 to-green-500"
+          }`}
+        />
+
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-sm text-gray-500">
-                #{proposal.proposalId}
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-sm font-mono text-white/40">
+                #{proposal.proposalId.toString().padStart(3, "0")}
               </span>
-              <span
-                className={`px-3 py-1 rounded-full text-sm ${
-                  isExpired
-                    ? "bg-gray-500/20 text-gray-400"
-                    : "bg-green-500/20 text-green-400"
-                }`}
-              >
-                {isExpired ? "Ended" : "Active"}
-              </span>
+              {isExpired ? (
+                <span className="badge badge-ended">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Ended
+                </span>
+              ) : (
+                <span className="badge badge-active">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                  Active
+                </span>
+              )}
             </div>
-            <h1 className="text-2xl font-bold">{proposal.proposalInfo}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">{proposal.proposalInfo}</h1>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6 mb-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="p-4 rounded-xl bg-white/5">
-            <p className="text-sm text-gray-400 mb-1">Total Votes</p>
+            <p className="text-sm text-white/50 mb-1">Total Votes</p>
             <p className="text-2xl font-bold">{proposal.numberOfVotes}</p>
           </div>
           <div className="p-4 rounded-xl bg-white/5">
-            <p className="text-sm text-gray-400 mb-1">Time Remaining</p>
-            <p
-              className={`text-2xl font-bold ${
-                isExpired ? "text-red-400" : "text-green-400"
-              }`}
-            >
-              {getTimeRemaining(proposal.deadline)}
+            <p className="text-sm text-white/50 mb-1">Status</p>
+            <p className={`text-lg font-semibold ${isExpired ? "text-gray-400" : "text-green-400"}`}>
+              {isExpired ? "Ended" : "Active"}
             </p>
           </div>
-        </div>
-
-        <div className="border-t border-white/10 pt-6">
-          <p className="text-sm text-gray-400 mb-2">Deadline</p>
-          <p className="text-lg">{formatDate(proposal.deadline)}</p>
+          <div className="p-4 rounded-xl bg-white/5">
+            <p className="text-sm text-white/50 mb-1">Deadline</p>
+            <p className="text-sm font-medium">{formatDate(proposal.deadline)}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-white/5">
+            <p className="text-sm text-white/50 mb-1">Time Remaining</p>
+            <div className="text-sm font-medium">
+              <CountdownTimer deadline={proposal.deadline} compact />
+            </div>
+          </div>
         </div>
       </motion.div>
 
+      {/* Voting Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="glass-card rounded-2xl p-8"
+        className="glass-card p-8"
       >
-        <h2 className="text-xl font-semibold mb-4">Cast Your Vote</h2>
+        <h2 className="text-xl font-semibold mb-6">Cast Your Vote</h2>
+
         {!isVoterRegistered ? (
           <div className="text-center py-8">
-            <p className="text-gray-400 mb-4">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-yellow-500/20 flex items-center justify-center">
+              <Users className="w-8 h-8 text-yellow-400" />
+            </div>
+            <p className="text-white/60 mb-4">
               You need to register as a voter before voting
             </p>
-            <Link
-              to="/profile"
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-green-600 text-white font-semibold"
-            >
-              Register to Vote
+            <Link to="/profile">
+              <AnimatedButton>Register to Vote</AnimatedButton>
             </Link>
           </div>
         ) : isExpired ? (
           <div className="text-center py-8">
-            <p className="text-gray-400">Voting has ended for this proposal</p>
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-500/20 flex items-center justify-center">
+              <Calendar className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-white/60">Voting has ended for this proposal</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            <p className="text-gray-400">
-              Voting requires staking 1 token. Your tokens will be transferred
-              to the treasury.
-            </p>
-            <button
+          <div className="space-y-6">
+            <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+              <p className="text-white/80">
+                Voting requires staking <span className="font-semibold text-purple-400">1 token</span>.
+                Your tokens will be transferred to the treasury to support the DAO.
+              </p>
+            </div>
+            <AnimatedButton
               onClick={handleVote}
-              disabled={voteMutation.isPending}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-green-600 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+              loading={voteMutation.isPending}
+              className="w-full justify-center text-lg py-4"
             >
-              {voteMutation.isPending ? "Voting..." : "Vote for This Proposal"}
-            </button>
+              Vote for This Proposal
+            </AnimatedButton>
+            <p className="text-xs text-white/40 text-center">
+              By voting, you agree to transfer 1 VKN token to the treasury
+            </p>
           </div>
         )}
       </motion.div>
